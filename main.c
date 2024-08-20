@@ -49,18 +49,20 @@ Similaridade *criar_similaridade(int posicao) {
 }
 
 typedef struct Filme {
+  Cor cor;
+  int identificador;
   char nome[TAMANHO_NOME];
   int nivel;
-  Cor cor;
   Similaridade *similar;
 } Filme;
 
 Filme *criar_filme(char nome[]) {
   Filme *filme = malloc(sizeof(Filme));
   if (!filme) exit(1);
+  filme->cor = BRANCO;
+  filme->identificador = -1;
   strcpy(filme->nome, nome);
   filme->nivel = 0;
-  filme->cor = BRANCO;
   filme->similar = NULL;
   return filme;
 }
@@ -88,8 +90,12 @@ void inserir_lista(Lista *lista, Filme *filme) {
 }
 
 void exibir_lista(Lista *lista) {
-  for (int i = 0; i < lista->tamanho; i++) 
-    printf("%s. Nivel: %d\n", lista->filmes[i]->nome, lista->filmes[i]->nivel);
+  Filme *filme = NULL;
+  
+  for (int i = 0; i < lista->tamanho; i++) {
+    filme = lista->filmes[i];
+    printf("Id: %d - Nome: %s - Nivel: %d;\n", filme->identificador, filme->nome, filme->nivel);
+  } 
 }
 
 typedef struct Recomendacao {
@@ -99,7 +105,7 @@ typedef struct Recomendacao {
 Recomendacao *criar_recomendacao(void) {
   Recomendacao *recomendacao = malloc(sizeof(Recomendacao));
   if (!recomendacao) exit(1);
-  
+
   recomendacao->filmes = malloc(sizeof(Filme *) * NUMERO_FILMES);
   if (!recomendacao->filmes) exit(1);
 
@@ -124,13 +130,13 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
   while (cursor != NULL) {
     if (cursor->posicao == similaridade->posicao)
       return;
-    
+
     cursor = cursor->proximo;
   }
 
   similaridade->proximo = filme->similar;
   filme->similar = similaridade;
-  
+
   // ----------------- VOLTA ------------------------
 
   similaridade = criar_similaridade(posicao_de);
@@ -150,10 +156,11 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
 }
 
 void gerar_similaridades(Recomendacao *recomendacao) {
-  int quantidade_loops = 5;
-  int posicao_origem = 0, posicao_destino = 0;
+  int quantidade_loops = 0, posicao_origem = 0, posicao_destino = 0;
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
+    quantidade_loops = rand() % 3;
+    
     for (int j = 0; j < quantidade_loops; j++) {
       posicao_origem = i;
       posicao_destino = rand() % NUMERO_FILMES;
@@ -165,9 +172,10 @@ void gerar_similaridades(Recomendacao *recomendacao) {
 
 void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel) {
   Filme *filme = recomendacao->filmes[posicao];
+  filme->identificador = posicao;
   filme->nivel = nivel;
   filme->cor = CINZA;
-  
+
   printf("Posicao [%d]: Nome {%s} - Nivel (%d)\n", posicao, filme->nome, nivel);
   inserir_lista(lista, filme);
 
@@ -200,17 +208,17 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Filme *filme = NULL;
   Lista *lista_filmes = criar_lista();
   int nivel = 0;
-  
+
   for (int i = 0; i < NUMERO_FILMES; i++) {
     filme = recomendacao->filmes[i];
     filme->cor = BRANCO;
   }
 
   printf("Posição inicial: %d\n", posicao_inicial);
-  
-  puts("Buscando similaridades...");
+
+  puts("\nBuscando similaridades...");
   buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel);
-  puts("\n");
+  printf("\n");
 
   qsort(lista_filmes->filmes, lista_filmes->tamanho, sizeof(Filme *), comparar_por_nivel);
 
@@ -224,12 +232,12 @@ void printar_similares(Filme *filme) {
   printf("Filme: %s\n", filme->nome);
 
   while (cursor != NULL) {
-    printf("Similar %d: %d\n", contador, cursor->posicao);
+    printf("%d\n", cursor->posicao);
     cursor = cursor->proximo;
     contador++;
   }
 
-  puts("\n");
+  printf("\n");
 }
 
 int main(void) {
@@ -237,13 +245,13 @@ int main(void) {
 
   Recomendacao *recomendacao = criar_recomendacao();
 
-  gerar_similaridades(recomendacao);
+  // gerar_similaridades(recomendacao);
 
-  // adicionar_similaridade(recomendacao, 5, 0);
-  // adicionar_similaridade(recomendacao, 5, 4);
-  // adicionar_similaridade(recomendacao, 4, 3);
-  // adicionar_similaridade(recomendacao, 3, 1);
-  // adicionar_similaridade(recomendacao, 1, 2);
+  adicionar_similaridade(recomendacao, 5, 0);
+  adicionar_similaridade(recomendacao, 5, 4);
+  adicionar_similaridade(recomendacao, 4, 3);
+  adicionar_similaridade(recomendacao, 3, 1);
+  adicionar_similaridade(recomendacao, 1, 2);
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
     printf("[%d]: ", i);
