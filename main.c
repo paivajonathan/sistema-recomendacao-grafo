@@ -88,15 +88,15 @@ Filme *criar_filme(char nome[]) {
   return filme;
 }
 
-void destruir_filme(Filme **filme) {
-  if ((*filme) == NULL)
+void destruir_filme(Filme *filme) {
+  if (filme == NULL)
     return;
 
-  destruir_similaridades((*filme)->similar);
-  (*filme)->similar = NULL;
+  destruir_similaridades(filme->similar);
+  filme->similar = NULL;
 
-  free((*filme));
-  (*filme) = NULL;
+  free(filme);
+  filme = NULL;
 }
 
 void printar_similares(Filme *filme) {
@@ -149,14 +149,14 @@ void exibir_lista(Lista *lista) {
   }
 }
 
-void destruir_lista(Lista **lista) {
-  if ((*lista) == NULL) return;
+void destruir_lista(Lista *lista) {
+  if (lista == NULL) return;
 
-  free((*lista)->filmes);
-  (*lista)->filmes = NULL;
+  free(lista->filmes);
+  lista->filmes = NULL;
 
-  free((*lista));
-  (*lista) = NULL;
+  free(lista);
+  lista = NULL;
 }
 
 Recomendacao *criar_recomendacao(void) {
@@ -172,17 +172,17 @@ Recomendacao *criar_recomendacao(void) {
   return recomendacao;
 }
 
-void destruir_recomendacao(Recomendacao **recomendacao) {
-  if ((*recomendacao) == NULL) return;
+void destruir_recomendacao(Recomendacao *recomendacao) {
+  if (recomendacao == NULL) return;
 
   for (int i = 0; i < NUMERO_FILMES; i++)
-    destruir_filme(&(*recomendacao)->filmes[i]);
+    destruir_filme(recomendacao->filmes[i]);
 
-  free((*recomendacao)->filmes);
-  (*recomendacao)->filmes = NULL;
+  free(recomendacao->filmes);
+  recomendacao->filmes = NULL;
 
-  free((*recomendacao));
-  (*recomendacao) = NULL;
+  free(recomendacao);
+  recomendacao = NULL;
 }
 
 void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posicao_para) {
@@ -290,7 +290,7 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
 
   qsort(lista_filmes->filmes, lista_filmes->tamanho, sizeof(Filme *), comparar_por_nivel);
   exibir_lista(lista_filmes);
-  destruir_lista(&lista_filmes);
+  destruir_lista(lista_filmes);
 }
 
 int main(void) {
@@ -316,5 +316,5 @@ int main(void) {
 
   buscar_similaridades(recomendacao, posicao_inicial);
 
-  destruir_recomendacao(&recomendacao);
+  destruir_recomendacao(recomendacao);
 }
