@@ -246,7 +246,6 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
   inserir_lista(lista, filme);
 
   Similaridade *cursor = filme->similar;
-
   while (cursor != NULL) {
     int posicao_similar = cursor->posicao;
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
@@ -275,12 +274,12 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_filmes = criar_lista();
   int nivel = 0;
 
+  // Reseta os nós para a busca funcionar mais uma vez
   Filme *cursor = NULL;
   for (int i = 0; i < NUMERO_FILMES; i++) {
     cursor = recomendacao->filmes[i];
     cursor->cor = BRANCO;
   }
-  cursor = NULL;
 
   printf("Posição inicial: %d\n", posicao_inicial);
 
@@ -288,7 +287,9 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel);
   printf("\n");
 
+  // Ordena as listas por nível
   qsort(lista_filmes->filmes, lista_filmes->tamanho, sizeof(Filme *), comparar_por_nivel);
+  
   exibir_lista(lista_filmes);
   destruir_lista(lista_filmes);
 }
@@ -297,18 +298,11 @@ int main(void) {
   srand(time(NULL));
 
   Recomendacao *recomendacao = criar_recomendacao();
-  // int posicao_inicial = rand() % NUMERO_FILMES;
-  int posicao_inicial = 5;
+  int posicao_inicial = rand() % NUMERO_FILMES;
 
-  // gerar_similaridades(recomendacao);
+  gerar_similaridades(recomendacao);
 
-  // Para testar o exemplo do Marcel:
-  adicionar_similaridade(recomendacao, 5, 4);
-  adicionar_similaridade(recomendacao, 5, 0);
-  adicionar_similaridade(recomendacao, 4, 3);
-  adicionar_similaridade(recomendacao, 3, 1);
-  adicionar_similaridade(recomendacao, 1, 2);
-
+  // Mostrar similaridades que foram geradas
   for (int i = 0; i < NUMERO_FILMES; i++) {
     printf("[%d]: ", i);
     printar_similares(recomendacao->filmes[i]);
