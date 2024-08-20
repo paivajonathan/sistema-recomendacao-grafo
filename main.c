@@ -5,6 +5,7 @@
 
 #define NUMERO_FILMES 20
 #define TAMANHO_NOME 256
+#define MAXIMO_LOOPS 3
 
 char nomes_filmes[NUMERO_FILMES][TAMANHO_NOME] = {
   "O Poderoso Chefão",
@@ -91,10 +92,19 @@ void inserir_lista(Lista *lista, Filme *filme) {
 
 void exibir_lista(Lista *lista) {
   Filme *filme = NULL;
+
+  filme = lista->filmes[0];
+  printf("Exibindo similares do filme \"[%d] - %s\":\n\n", filme->identificador, filme->nome);
   
-  for (int i = 0; i < lista->tamanho; i++) {
+  // Existe apenas o filme inicial
+  if (lista->tamanho == 1) {
+    printf("Não há filmes similares.\n");
+    return;
+  }
+  
+  for (int i = 1; i < lista->tamanho; i++) {
     filme = lista->filmes[i];
-    printf("Id: %d - Nome: %s - Nivel: %d;\n", filme->identificador, filme->nome, filme->nivel);
+    printf("[%d] - %s\n", filme->identificador, filme->nome);
   } 
 }
 
@@ -159,7 +169,7 @@ void gerar_similaridades(Recomendacao *recomendacao) {
   int quantidade_loops = 0, posicao_origem = 0, posicao_destino = 0;
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
-    quantidade_loops = rand() % 3;
+    quantidade_loops = rand() % MAXIMO_LOOPS;
     
     for (int j = 0; j < quantidade_loops; j++) {
       posicao_origem = i;
@@ -176,10 +186,11 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
   filme->nivel = nivel;
   filme->cor = CINZA;
 
-  printf("Posicao [%d]: Nome {%s} - Nivel (%d)\n", posicao, filme->nome, nivel);
+  printf("[%d] - %s - Nivel (%d)\n", posicao, filme->nome, nivel);
   inserir_lista(lista, filme);
 
   Similaridade *cursor = filme->similar;
+
   while (cursor != NULL) {
     int posicao_similar = cursor->posicao;
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
@@ -216,7 +227,7 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
 
   printf("Posição inicial: %d\n", posicao_inicial);
 
-  puts("\nBuscando similaridades...");
+  puts("\n---------- Buscando similaridades... ----------\n");
   buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel);
   printf("\n");
 
@@ -244,19 +255,21 @@ int main(void) {
   srand(time(NULL));
 
   Recomendacao *recomendacao = criar_recomendacao();
+  int posicao_inicial = rand() % NUMERO_FILMES;
 
-  // gerar_similaridades(recomendacao);
+  gerar_similaridades(recomendacao);
 
-  adicionar_similaridade(recomendacao, 5, 0);
-  adicionar_similaridade(recomendacao, 5, 4);
-  adicionar_similaridade(recomendacao, 4, 3);
-  adicionar_similaridade(recomendacao, 3, 1);
-  adicionar_similaridade(recomendacao, 1, 2);
+  // Para testar o exemplo do Marcel:
+  // adicionar_similaridade(recomendacao, 5, 0);
+  // adicionar_similaridade(recomendacao, 5, 4);
+  // adicionar_similaridade(recomendacao, 4, 3);
+  // adicionar_similaridade(recomendacao, 3, 1);
+  // adicionar_similaridade(recomendacao, 1, 2);
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
     printf("[%d]: ", i);
     printar_similares(recomendacao->filmes[i]);
   }
 
-  buscar_similaridades(recomendacao, 5);
+  buscar_similaridades(recomendacao, posicao_inicial);
 }
