@@ -41,14 +41,6 @@ typedef struct Similaridade {
   struct Similaridade *proximo;
 } Similaridade;
 
-Similaridade *criar_similaridade(int posicao) {
-  Similaridade *similaridade = malloc(sizeof(Similaridade));
-  if (!similaridade) exit(1);
-  similaridade->posicao = posicao;
-  similaridade->proximo = NULL;
-  return similaridade;
-}
-
 typedef struct Filme {
   Cor cor;
   int identificador;
@@ -56,6 +48,23 @@ typedef struct Filme {
   int nivel;
   Similaridade *similar;
 } Filme;
+
+typedef struct Lista {
+  Filme **filmes;
+  int tamanho;
+} Lista;
+
+typedef struct Recomendacao {
+  Filme **filmes;
+} Recomendacao;
+
+Similaridade *criar_similaridade(int posicao) {
+  Similaridade *similaridade = malloc(sizeof(Similaridade));
+  if (!similaridade) exit(1);
+  similaridade->posicao = posicao;
+  similaridade->proximo = NULL;
+  return similaridade;
+}
 
 Filme *criar_filme(char nome[]) {
   Filme *filme = malloc(sizeof(Filme));
@@ -68,10 +77,20 @@ Filme *criar_filme(char nome[]) {
   return filme;
 }
 
-typedef struct Lista {
-  Filme **filmes;
-  int tamanho;
-} Lista;
+void printar_similares(Filme *filme) {
+  Similaridade *cursor = filme->similar;
+  int contador = 0;
+
+  printf("Filme: %s\n", filme->nome);
+
+  while (cursor != NULL) {
+    printf("%d\n", cursor->posicao);
+    cursor = cursor->proximo;
+    contador++;
+  }
+
+  printf("\n");
+}
 
 Lista *criar_lista(void) {
   Lista *lista = malloc(sizeof(Lista));
@@ -107,10 +126,6 @@ void exibir_lista(Lista *lista) {
     printf("[%d] - %s\n", filme->identificador, filme->nome);
   } 
 }
-
-typedef struct Recomendacao {
-  Filme **filmes;
-} Recomendacao;
 
 Recomendacao *criar_recomendacao(void) {
   Recomendacao *recomendacao = malloc(sizeof(Recomendacao));
@@ -236,35 +251,21 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   exibir_lista(lista_filmes);
 }
 
-void printar_similares(Filme *filme) {
-  Similaridade *cursor = filme->similar;
-  int contador = 0;
-
-  printf("Filme: %s\n", filme->nome);
-
-  while (cursor != NULL) {
-    printf("%d\n", cursor->posicao);
-    cursor = cursor->proximo;
-    contador++;
-  }
-
-  printf("\n");
-}
-
 int main(void) {
   srand(time(NULL));
 
   Recomendacao *recomendacao = criar_recomendacao();
-  int posicao_inicial = rand() % NUMERO_FILMES;
+  // int posicao_inicial = rand() % NUMERO_FILMES;
+  int posicao_inicial = 5;
 
-  gerar_similaridades(recomendacao);
+  // gerar_similaridades(recomendacao);
 
   // Para testar o exemplo do Marcel:
-  // adicionar_similaridade(recomendacao, 5, 0);
-  // adicionar_similaridade(recomendacao, 5, 4);
-  // adicionar_similaridade(recomendacao, 4, 3);
-  // adicionar_similaridade(recomendacao, 3, 1);
-  // adicionar_similaridade(recomendacao, 1, 2);
+  adicionar_similaridade(recomendacao, 5, 0);
+  adicionar_similaridade(recomendacao, 5, 4);
+  adicionar_similaridade(recomendacao, 4, 3);
+  adicionar_similaridade(recomendacao, 3, 1);
+  adicionar_similaridade(recomendacao, 1, 2);
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
     printf("[%d]: ", i);
