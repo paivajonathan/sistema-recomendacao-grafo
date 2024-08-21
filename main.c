@@ -59,39 +59,27 @@ typedef struct Recomendacao {
 } Recomendacao;
 
 Similaridade *criar_similaridade(int posicao);
-
 void destruir_similaridades(Similaridade *inicial);
 
 Filme *criar_filme(int identificador, char nome[]);
-
+void exibir_similares(Filme *filme);
 void destruir_filme(Filme *filme);
 
-void exibir_similares(Filme *filme);
-
 Lista *criar_lista(void);
-
 void inserir_lista(Lista *lista, Filme *filme);
-
 void exibir_lista(Lista *lista);
-
 void destruir_lista(Lista *lista);
 
 Recomendacao *criar_recomendacao(void);
-
 void exibir_filmes_similares(Recomendacao *recomendacao);
-
 void resetar_recomendacao(Recomendacao *recomendacao);
-
 void destruir_recomendacao(Recomendacao *recomendacao);
 
 void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posicao_para);
-
 void gerar_similaridades(Recomendacao *recomendacao);
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int distancia, int posicao_anterior);
-
 int comparar_por_distancia(const void *a, const void *b);
-
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int distancia, int posicao_anterior);
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial);
 
 int main(void) {
@@ -141,17 +129,6 @@ Filme *criar_filme(int identificador, char nome[]) {
   return filme;
 }
 
-void destruir_filme(Filme *filme) {
-  if (filme == NULL)
-    return;
-
-  destruir_similaridades(filme->similar);
-  filme->similar = NULL;
-
-  free(filme);
-  filme = NULL;
-}
-
 void exibir_similares(Filme *filme) {
   int contador = 0;
 
@@ -171,6 +148,17 @@ void exibir_similares(Filme *filme) {
   }
 
   printf("\n");
+}
+
+void destruir_filme(Filme *filme) {
+  if (filme == NULL)
+    return;
+
+  destruir_similaridades(filme->similar);
+  filme->similar = NULL;
+
+  free(filme);
+  filme = NULL;
 }
 
 Lista *criar_lista(void) {
@@ -314,6 +302,17 @@ void gerar_similaridades(Recomendacao *recomendacao) {
   }
 }
 
+int comparar_por_distancia(const void *a, const void *b) {
+  // Conversão dos ponteiros para ponteiros para Filme
+  const Filme *filme_a = *(const Filme **)a;
+  const Filme *filme_b = *(const Filme **)b;
+
+  // Compara as distancias
+  if (filme_a->distancia < filme_b->distancia) return -1;
+  if (filme_a->distancia > filme_b->distancia) return 1;
+  return 0;
+}
+
 void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resultado, int posicao, int distancia, int posicao_anterior) {
   Filme *filme = recomendacao->filmes[posicao];
 
@@ -344,17 +343,6 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resul
   filme->cor = PRETO;
 }
 
-int comparar_por_distancia(const void *a, const void *b) {
-  // Conversão dos ponteiros para ponteiros para Filme
-  const Filme *filme_a = *(const Filme **)a;
-  const Filme *filme_b = *(const Filme **)b;
-
-  // Compara as distancias
-  if (filme_a->distancia < filme_b->distancia) return -1;
-  if (filme_a->distancia > filme_b->distancia) return 1;
-  return 0;
-}
-
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_resultado = criar_lista();
   int distancia = 0;
@@ -369,8 +357,8 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   
   printf("\n");
 
-  // Ordena a lista de recomendação pelo nível de similaridade com o principal
-  // Quanto menor o nível, mais próxima é a similaridade com o filme
+  // Ordena a lista do resultado pela distância dos filmes para o filme escolhido.
+  // Quanto menor o seu valor, mais próxima é a similaridade.
   qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
   exibir_lista(lista_resultado);
 
