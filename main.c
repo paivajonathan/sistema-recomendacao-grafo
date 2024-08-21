@@ -284,15 +284,17 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
 void gerar_similaridades(Recomendacao *recomendacao) {
   int posicao_origem = 0, posicao_destino = 0;
 
+  // São realizadas NUMERO_FILMES = 20 tentativas de conexão entre os filmes.
+  // Tentativas, por ser possível os mesmos números serem gerados mais de uma vez.
   for (int i = 0; i < NUMERO_FILMES; i++) {
-    posicao_origem = rand() % NUMERO_FILMES;
-    posicao_destino = rand() % NUMERO_FILMES;
+    posicao_origem = rand() % NUMERO_FILMES;  // 0 a 19
+    posicao_destino = rand() % NUMERO_FILMES;  // 0 a 19
 
     adicionar_similaridade(recomendacao, posicao_origem, posicao_destino);
   }
 }
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel, int posicao_anterior) {
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_recomendacao, int posicao, int nivel, int posicao_anterior) {
   Filme *filme = recomendacao->filmes[posicao];
   
   // Nó descoberto
@@ -300,7 +302,7 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
   filme->nivel = nivel;
 
   printf("%-10d %-50s Nivel: %-10d Anterior: %-10d\n", posicao, filme->nome, nivel, posicao_anterior);
-  inserir_lista(lista, filme);
+  inserir_lista(lista_recomendacao, filme);
 
   Similaridade *cursor = filme->similar;
   while (cursor != NULL) {
@@ -308,7 +310,7 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
 
     if (filme_similar->cor == BRANCO)
-      buscar_similaridades_interno(recomendacao, lista, posicao_similar, nivel + 1, posicao);
+      buscar_similaridades_interno(recomendacao, lista_recomendacao, posicao_similar, nivel + 1, posicao);
 
     cursor = cursor->proximo;
   }
@@ -318,7 +320,7 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
 }
 
 int comparar_por_nivel(const void *a, const void *b) {
-  // Cast dos ponteiros para ponteiros para Filme
+  // Conversão dos ponteiros para ponteiros para Filme
   const Filme *filme_a = *(const Filme **)a;
   const Filme *filme_b = *(const Filme **)b;
 
@@ -329,7 +331,7 @@ int comparar_por_nivel(const void *a, const void *b) {
 }
 
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
-  Lista *lista_filmes = criar_lista();
+  Lista *lista_recomendacao = criar_lista();
   int nivel = 0;
 
   // Reseta os nós para a busca funcionar mais uma vez
@@ -343,12 +345,13 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
 
   puts("---------- Buscando todos os similares... ----------\n");
   printf("Filme inicial: %d\n\n", posicao_inicial);
-  buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel, -1);
+  buscar_similaridades_interno(recomendacao, lista_recomendacao, posicao_inicial, nivel, -1);
   printf("\n");
 
-  // Ordena as listas por nível
-  qsort(lista_filmes->filmes, lista_filmes->tamanho, sizeof(Filme *), comparar_por_nivel);
+  // Ordena a lista de recomendação pelo nível de similaridade com o principal
+  // Quanto menor o nível, mais próxima é a similaridade com o filme
+  qsort(lista_recomendacao->filmes, lista_recomendacao->tamanho, sizeof(Filme *), comparar_por_nivel);
   
-  exibir_lista(lista_filmes);
-  destruir_lista(lista_filmes);
+  exibir_lista(lista_recomendacao);
+  destruir_lista(lista_recomendacao);
 }
