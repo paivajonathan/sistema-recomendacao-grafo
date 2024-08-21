@@ -78,6 +78,8 @@ void destruir_lista(Lista *lista);
 
 Recomendacao *criar_recomendacao(void);
 
+void exibir_filmes_similares(Recomendacao *recomendacao);
+
 void resetar_recomendacao(Recomendacao *recomendacao);
 
 void destruir_recomendacao(Recomendacao *recomendacao);
@@ -99,12 +101,7 @@ int main(void) {
   int posicao_inicial = rand() % NUMERO_FILMES;
 
   gerar_similaridades(recomendacao);
-
-  puts("\n---------- Exibindo os similares de cada filme... ----------\n");
-  for (int i = 0; i < NUMERO_FILMES; i++) {
-    printf("[%d]: ", i);
-    exibir_similares(recomendacao->filmes[i]);
-  }
+  exibir_filmes_similares(recomendacao);
 
   buscar_similaridades(recomendacao, posicao_inicial);
 
@@ -232,6 +229,14 @@ Recomendacao *criar_recomendacao(void) {
     recomendacao->filmes[i] = criar_filme(i, nomes_filmes[i]);
 
   return recomendacao;
+}
+
+void exibir_filmes_similares(Recomendacao *recomendacao) {
+  puts("\n---------- Exibindo os similares de cada filme... ----------\n");
+  for (int i = 0; i < NUMERO_FILMES; i++) {
+    printf("[%d]: ", i);
+    exibir_similares(recomendacao->filmes[i]);
+  }
 }
 
 void resetar_recomendacao(Recomendacao *recomendacao) {
