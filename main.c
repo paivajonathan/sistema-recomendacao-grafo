@@ -5,7 +5,6 @@
 
 #define NUMERO_FILMES 20
 #define TAMANHO_NOME 256
-#define MAXIMO_LOOPS 3
 
 char nomes_filmes[NUMERO_FILMES][TAMANHO_NOME] = {
   "O Poderoso Chefao",
