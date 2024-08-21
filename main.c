@@ -109,6 +109,7 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
   }
 
   filme->cor = BRANCO;  // Desmarcar o nó para outras possibilidades
+  printf("Posicao atual: %-10d Posicao final: %-10d Distancia: %-10d Distancia Minima: %-10d\n", posicao_inicial, posicao_final, distancia_atual, *distancia_minima);
 }
 
 void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) {
@@ -125,15 +126,17 @@ void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) 
     posicao_final = i;
     distancia_minima = INT_MAX;
     
+    printf("---------- Filme: %d <-> Filme: %d ----------\n", posicao_inicial, posicao_final);
+    
     filme = recomendacao->filmes[i];
     buscar_menores_distancias_interno(recomendacao, posicao_inicial, posicao_final, 0, &distancia_minima);
     filme->distancia = distancia_minima;
 
-    if (distancia_minima != INT_MAX) {
-      printf("Filme: %d <-> Filme: %d - Distancia minima: %d.\n", posicao_inicial, posicao_final, distancia_minima);
+    if (filme->distancia != INT_MAX) {
+      printf("---------- Distancia minima: %d ----------\n\n", distancia_minima);
       inserir_lista(lista_resultado, filme);
     } else {
-      printf("Filme: %d <-> Filme: %d - Nao ha similaridade.\n", posicao_inicial, posicao_final);
+      printf("---------- Nao ha similaridade ----------\n\n");
     }
   }
 
@@ -154,8 +157,7 @@ int main(void) {
   exibir_filmes_similares(recomendacao);
 
   // buscar_similaridades(recomendacao, posicao_inicial);
-  buscar_menores_distancias(recomendacao, rand() % NUMERO_FILMES);
-  buscar_menores_distancias(recomendacao, rand() % NUMERO_FILMES);
+  buscar_menores_distancias(recomendacao, posicao_inicial);
 
   destruir_recomendacao(recomendacao);
 }
