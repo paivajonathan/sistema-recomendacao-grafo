@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
 
 #define NUMERO_FILMES 20
 #define TAMANHO_NOME 256
