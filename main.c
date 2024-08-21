@@ -71,7 +71,6 @@ void destruir_lista(Lista *lista);
 
 Recomendacao *criar_recomendacao(void);
 void exibir_filmes_similares(Recomendacao *recomendacao);
-void resetar_recomendacao(Recomendacao *recomendacao);
 void destruir_recomendacao(Recomendacao *recomendacao);
 
 void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posicao_para);
@@ -96,6 +95,9 @@ int main(void) {
   destruir_recomendacao(recomendacao);
 }
 
+/**
+ * Cria um ponteiro para similaridade.
+ */
 Similaridade *criar_similaridade(int posicao) {
   Similaridade *similaridade = malloc(sizeof(Similaridade));
   if (!similaridade) exit(1);
@@ -104,6 +106,10 @@ Similaridade *criar_similaridade(int posicao) {
   return similaridade;
 }
 
+/**
+ * Desaloca a lista encadeada de similaridades de um filme,
+ * a partir do ponteiro inicial.
+ */
 void destruir_similaridades(Similaridade *inicial) {
   Similaridade *atual = inicial;
   Similaridade *proximo = NULL;
@@ -115,6 +121,10 @@ void destruir_similaridades(Similaridade *inicial) {
   }
 }
 
+/**
+ * Cria um ponteiro para filme, recebendo um identificador e um nome,
+ * para efeitos de exibição ao usuário.
+ */
 Filme *criar_filme(int identificador, char nome[]) {
   Filme *filme = malloc(sizeof(Filme));
   if (!filme) exit(1);
@@ -129,6 +139,9 @@ Filme *criar_filme(int identificador, char nome[]) {
   return filme;
 }
 
+/**
+ * Exibe todos os similares de um dado filme.
+ */
 void exibir_similares(Filme *filme) {
   int contador = 0;
 
@@ -150,6 +163,9 @@ void exibir_similares(Filme *filme) {
   printf("\n");
 }
 
+/**
+ * Desaloca a memória de um ponteiro de filme.
+ */
 void destruir_filme(Filme *filme) {
   if (filme == NULL)
     return;
@@ -161,6 +177,9 @@ void destruir_filme(Filme *filme) {
   filme = NULL;
 }
 
+/**
+ * Aloca a memória necessária para um ponteiro para lista de filmes.
+ */
 Lista *criar_lista(void) {
   Lista *lista = malloc(sizeof(Lista));
   if (!lista) exit(1);
@@ -169,6 +188,11 @@ Lista *criar_lista(void) {
   return lista;
 }
 
+/**
+ * Insere um ponteiro para filme na lista, alocando memória
+ * caso seu tamanho seja nulo, e realocando memória caso tenha um tamanho não nulo,
+ * sempre aumentando em 1 espaço para ponteiro para filme.
+ */
 void inserir_lista(Lista *lista, Filme *filme) {
   if (!lista->tamanho)
     lista->filmes = malloc(sizeof(Filme *));
@@ -178,6 +202,11 @@ void inserir_lista(Lista *lista, Filme *filme) {
   lista->filmes[lista->tamanho++] = filme;
 }
 
+/**
+ * Exibe todos os filmes da lista que será exibida para o usuário,
+ * validando se a lista tem apenas um filme, sendo a situação do filme não
+ * possuir similares.
+ */
 void exibir_lista(Lista *lista) {
   Filme *filme = NULL;
 
@@ -196,6 +225,9 @@ void exibir_lista(Lista *lista) {
   }
 }
 
+/**
+ * Desaloca a memória da lista de filmes.
+ */
 void destruir_lista(Lista *lista) {
   if (lista == NULL) return;
 
@@ -206,6 +238,9 @@ void destruir_lista(Lista *lista) {
   lista = NULL;
 }
 
+/**
+ * Cria um ponteiro para uma estrutura de recomendação.
+ */
 Recomendacao *criar_recomendacao(void) {
   Recomendacao *recomendacao = malloc(sizeof(Recomendacao));
   if (!recomendacao) exit(1);
@@ -219,6 +254,9 @@ Recomendacao *criar_recomendacao(void) {
   return recomendacao;
 }
 
+/**
+ * Exibe todos os filmes, junto de seus similares.
+ */
 void exibir_filmes_similares(Recomendacao *recomendacao) {
   puts("\n---------- Exibindo os similares de cada filme... ----------\n");
   for (int i = 0; i < NUMERO_FILMES; i++) {
@@ -228,20 +266,9 @@ void exibir_filmes_similares(Recomendacao *recomendacao) {
 }
 
 /**
- * Reseta a 'cor' dos filmes do sistema de recomendação,
- * para que a busca seja realizada mais uma vez.
+ * Desaloca a estrutura do sistema de recomendação,
+ * bem como seus filmes e as suas respectivas similaridades.
  */
-void resetar_recomendacao(Recomendacao *recomendacao) {
-  Filme *filme = NULL;
-  
-  for (int i = 0; i < NUMERO_FILMES; i++) {
-    filme = recomendacao->filmes[i];
-
-    filme->cor = BRANCO;
-    filme->distancia = INT_MAX;
-  }
-}
-
 void destruir_recomendacao(Recomendacao *recomendacao) {
   if (recomendacao == NULL) return;
 
@@ -315,6 +342,10 @@ void gerar_similaridades(Recomendacao *recomendacao) {
   }
 }
 
+/**
+ * Utilizado pela função qsort para ordernar os filmes na lista de filmes
+ * pela distância que cada um tem pro filme escolhido.
+ */
 int comparar_por_distancia(const void *a, const void *b) {
   // Conversão dos ponteiros para ponteiros para Filme
   const Filme *filme_a = *(const Filme **)a;
@@ -332,7 +363,9 @@ int comparar_por_distancia(const void *a, const void *b) {
  */
 void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_inicial, int posicao_final, int distancia_atual, int* distancia_minima) {
   Filme *filme = recomendacao->filmes[posicao_inicial];
-  filme->cor = PRETO;  // Marcar como visitado para não retornar a esse nó dentro desta busca
+
+  // Marcar como visitado para não retornar a esse nó dentro desta busca
+  filme->cor = PRETO;  
 
   // Descomentar para mostrar a execução da busca para cada um dos filmes (>)
   // > printf("Posicao atual: %-10d Posicao final: %-10d Distancia: %-10d ", posicao_inicial, posicao_final, distancia_atual);
@@ -342,6 +375,8 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
     // > printf("Distancia minima: %-10d\n", *distancia_minima);
   } else {
     // > printf("Distancia minima: %-10d\n", *distancia_minima);
+
+    // Busca todos os filmes similares
     Similaridade *cursor = filme->similar;
 
     while (cursor != NULL) {
@@ -355,7 +390,8 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
     }
   }
 
-  filme->cor = BRANCO;  // Desmarcar o nó para outras possibilidades de caminhos
+  // Desmarcar o nó para outras possibilidades de caminhos
+  filme->cor = BRANCO;  
 }
 
 /**
@@ -391,6 +427,8 @@ void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) 
     printf("---------- Nao ha similaridade ----------\n\n");
   }
 
+  // Ordena a lista que será exibida ao usuário pela distância que cada filme tem
+  // para o filme que foi escolhido.
   qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
   
   exibir_lista(lista_resultado);
