@@ -8,26 +8,26 @@
 #define MAXIMO_LOOPS 3
 
 char nomes_filmes[NUMERO_FILMES][TAMANHO_NOME] = {
-  "O Poderoso Chefão",
+  "O Poderoso Chefao",
   "Um Sonho de Liberdade",
   "A Lista de Schindler",
-  "Forrest Gump - O Contador de Histórias",
-  "O Rei Leão",
-  "O Senhor dos Anéis - O Retorno do Rei",
-  "À Espera de um Milagre",
+  "Forrest Gump - O Contador de Historias",
+  "O Rei Leao",
+  "O Senhor dos Aneis - O Retorno do Rei",
+  "A Espera de um Milagre",
   "Batman - O Cavaleiro Das Trevas",
-  "A Vida é Bela",
+  "A Vida e Bela",
   "Vingadores: Ultimato",
-  "O Poderoso Chefão 2",
+  "O Poderoso Chefao 2",
   "Vingadores: Guerra Infinita",
   "O Auto da Compadecida",
-  "Viva - A Vida é uma Festa",
+  "Viva - A Vida e uma Festa",
   "De Volta para o Futuro",
   "O Resgate do Soldado Ryan",
   "Gladiador",
   "Django Livre",
-  "O Senhor dos Anéis - A Sociedade do Anel",
-  "O Silêncio dos Inocentes"
+  "O Senhor dos Aneis - A Sociedade do Anel",
+  "O Silencio dos Inocentes"
 };
 
 typedef enum Cor {
@@ -100,10 +100,16 @@ void destruir_filme(Filme *filme) {
 }
 
 void printar_similares(Filme *filme) {
-  Similaridade *cursor = filme->similar;
   int contador = 0;
 
-  printf("Filme: %s\n", filme->nome);
+  printf("%s\n", filme->nome);
+
+  Similaridade *cursor = filme->similar;
+
+  if (cursor == NULL) {
+    puts("Nao possui similares.\n");
+    return;
+  }
 
   while (cursor != NULL) {
     printf("%d\n", cursor->posicao);
@@ -135,17 +141,17 @@ void exibir_lista(Lista *lista) {
   Filme *filme = NULL;
 
   filme = lista->filmes[0];
-  printf("Exibindo similares do filme \"[%d] - %s\":\n\n", filme->identificador, filme->nome);
+  printf("---------- Exibindo similares do filme \"[%d] - %s\": ----------\n\n", filme->identificador, filme->nome);
 
   // Existe apenas o filme inicial
   if (lista->tamanho == 1) {
-    printf("Não há filmes similares.\n");
+    printf("Nao ha filmes similares.\n");
     return;
   }
 
   for (int i = 1; i < lista->tamanho; i++) {
     filme = lista->filmes[i];
-    printf("[%d] - %s\n", filme->identificador, filme->nome);
+    printf("[%d] - %s - %d\n", filme->identificador, filme->nome, filme->nivel);
   }
 }
 
@@ -222,27 +228,26 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
 }
 
 void gerar_similaridades(Recomendacao *recomendacao) {
-  int quantidade_loops = 0, posicao_origem = 0, posicao_destino = 0;
+  int posicao_origem = 0, posicao_destino = 0;
 
   for (int i = 0; i < NUMERO_FILMES; i++) {
-    quantidade_loops = rand() % MAXIMO_LOOPS;
+    posicao_origem = rand() % NUMERO_FILMES;
+    posicao_destino = rand() % NUMERO_FILMES;
 
-    for (int j = 0; j < quantidade_loops; j++) {
-      posicao_origem = i;
-      posicao_destino = rand() % NUMERO_FILMES;
-
-      adicionar_similaridade(recomendacao, posicao_origem, posicao_destino);
-    }
+    adicionar_similaridade(recomendacao, posicao_origem, posicao_destino);
   }
 }
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel) {
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel, int posicao_anterior) {
   Filme *filme = recomendacao->filmes[posicao];
+  
+  // Nó descoberto
+  filme->cor = CINZA;
+  
   filme->identificador = posicao;
   filme->nivel = nivel;
-  filme->cor = CINZA;
 
-  printf("[%d] - %s - Nivel (%d)\n", posicao, filme->nome, nivel);
+  printf("%-10d %-50s Nivel: %-10d Anterior: %-10d\n", posicao, filme->nome, nivel, posicao_anterior);
   inserir_lista(lista, filme);
 
   Similaridade *cursor = filme->similar;
@@ -251,11 +256,12 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
 
     if (filme_similar->cor == BRANCO)
-      buscar_similaridades_interno(recomendacao, lista, posicao_similar, nivel + 1);
+      buscar_similaridades_interno(recomendacao, lista, posicao_similar, nivel + 1, posicao);
 
     cursor = cursor->proximo;
   }
 
+  // Nó finalizado
   filme->cor = PRETO;
 }
 
@@ -278,13 +284,14 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Filme *cursor = NULL;
   for (int i = 0; i < NUMERO_FILMES; i++) {
     cursor = recomendacao->filmes[i];
+    
     cursor->cor = BRANCO;
+    cursor->nivel = 0;
   }
 
-  printf("Posição inicial: %d\n", posicao_inicial);
-
-  puts("\n---------- Buscando similaridades... ----------\n");
-  buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel);
+  puts("---------- Buscando todos os similares... ----------\n");
+  printf("Filme inicial: %d\n\n", posicao_inicial);
+  buscar_similaridades_interno(recomendacao, lista_filmes, posicao_inicial, nivel, -1);
   printf("\n");
 
   // Ordena as listas por nível
@@ -302,7 +309,7 @@ int main(void) {
 
   gerar_similaridades(recomendacao);
 
-  // Mostrar similaridades que foram geradas
+  puts("\n---------- Exibindo os similares de cada filme... ----------\n");
   for (int i = 0; i < NUMERO_FILMES; i++) {
     printf("[%d]: ", i);
     printar_similares(recomendacao->filmes[i]);
