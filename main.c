@@ -45,7 +45,7 @@ typedef struct Filme {
   Cor cor;
   int identificador;
   char nome[TAMANHO_NOME];
-  int nivel;
+  int distancia;
   Similaridade *similar;
 } Filme;
 
@@ -88,9 +88,9 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
 
 void gerar_similaridades(Recomendacao *recomendacao);
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel, int posicao_anterior);
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int distancia, int posicao_anterior);
 
-int comparar_por_nivel(const void *a, const void *b);
+int comparar_por_distancia(const void *a, const void *b);
 
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial);
 
@@ -135,7 +135,7 @@ Filme *criar_filme(int identificador, char nome[]) {
   strcpy(filme->nome, nome);
 
   filme->cor = BRANCO;
-  filme->nivel = 0;
+  filme->distancia = 0;
 
   filme->similar = NULL;
   return filme;
@@ -204,7 +204,7 @@ void exibir_lista(Lista *lista) {
 
   for (int i = 1; i < lista->tamanho; i++) {
     filme = lista->filmes[i];
-    printf("[%d] - %s - %d\n", filme->identificador, filme->nome, filme->nivel);
+    printf("[%d] - %s - %d\n", filme->identificador, filme->nome, filme->distancia);
   }
 }
 
@@ -246,7 +246,7 @@ void resetar_recomendacao(Recomendacao *recomendacao) {
     filme = recomendacao->filmes[i];
 
     filme->cor = BRANCO;
-    filme->nivel = 0;
+    filme->distancia = 0;
   }
 }
 
@@ -314,23 +314,28 @@ void gerar_similaridades(Recomendacao *recomendacao) {
   }
 }
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resultado, int posicao, int nivel, int posicao_anterior) {
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resultado, int posicao, int distancia, int posicao_anterior) {
   Filme *filme = recomendacao->filmes[posicao];
 
   // Nó descoberto
   filme->cor = CINZA;
-  filme->nivel = nivel;
 
-  printf("%-10d %-50s Nivel: %-10d Anterior: %-10d\n", posicao, filme->nome, nivel, posicao_anterior);
+  // Nível de distância pro nó inicial
+  filme->distancia = distancia;
+
+  printf("%-10d %-50s Distancia: %-10d Anterior: %-10d\n", posicao, filme->nome, distancia, posicao_anterior);
+  
+  // Insere na lista para o resultado final da recomendação
   inserir_lista(lista_resultado, filme);
 
+  // Buscar todos os vizinhos do nó atual
   Similaridade *cursor = filme->similar;
   while (cursor != NULL) {
     int posicao_similar = cursor->posicao;
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
 
     if (filme_similar->cor == BRANCO)
-      buscar_similaridades_interno(recomendacao, lista_resultado, posicao_similar, nivel + 1, posicao);
+      buscar_similaridades_interno(recomendacao, lista_resultado, posicao_similar, distancia + 1, posicao);
 
     cursor = cursor->proximo;
   }
@@ -339,20 +344,20 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resul
   filme->cor = PRETO;
 }
 
-int comparar_por_nivel(const void *a, const void *b) {
+int comparar_por_distancia(const void *a, const void *b) {
   // Conversão dos ponteiros para ponteiros para Filme
   const Filme *filme_a = *(const Filme **)a;
   const Filme *filme_b = *(const Filme **)b;
 
-  // Compara os níveis
-  if (filme_a->nivel < filme_b->nivel) return -1;
-  if (filme_a->nivel > filme_b->nivel) return 1;
+  // Compara as distancias
+  if (filme_a->distancia < filme_b->distancia) return -1;
+  if (filme_a->distancia > filme_b->distancia) return 1;
   return 0;
 }
 
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_resultado = criar_lista();
-  int nivel = 0;
+  int distancia = 0;
 
   // Reseta os nós para a busca funcionar mais uma vez
   resetar_recomendacao(recomendacao);
@@ -360,13 +365,13 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   puts("---------- Buscando todos os similares... ----------\n");
   printf("Filme inicial: %d\n\n", posicao_inicial);
   
-  buscar_similaridades_interno(recomendacao, lista_resultado, posicao_inicial, nivel, -1);
+  buscar_similaridades_interno(recomendacao, lista_resultado, posicao_inicial, distancia, -1);
   
   printf("\n");
 
   // Ordena a lista de recomendação pelo nível de similaridade com o principal
   // Quanto menor o nível, mais próxima é a similaridade com o filme
-  qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_nivel);
+  qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
   exibir_lista(lista_resultado);
 
   destruir_lista(lista_resultado);
