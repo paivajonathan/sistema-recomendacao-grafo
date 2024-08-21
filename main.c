@@ -135,9 +135,10 @@ void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) 
     if (filme->distancia != INT_MAX) {
       printf("---------- Distancia minima: %d ----------\n\n", distancia_minima);
       inserir_lista(lista_resultado, filme);
-    } else {
-      printf("---------- Nao ha similaridade ----------\n\n");
-    }
+      continue;
+    } 
+    
+    printf("---------- Nao ha similaridade ----------\n\n");
   }
 
   qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
