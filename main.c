@@ -62,7 +62,7 @@ Similaridade *criar_similaridade(int posicao);
 
 void destruir_similaridades(Similaridade *inicial);
 
-Filme *criar_filme(char nome[]);
+Filme *criar_filme(int identificador, char nome[]);
 
 void destruir_filme(Filme *filme);
 
@@ -128,13 +128,16 @@ void destruir_similaridades(Similaridade *inicial) {
   }
 }
 
-Filme *criar_filme(char nome[]) {
+Filme *criar_filme(int identificador, char nome[]) {
   Filme *filme = malloc(sizeof(Filme));
   if (!filme) exit(1);
-  filme->cor = BRANCO;
-  filme->identificador = -1;
+  
+  filme->identificador = identificador;
   strcpy(filme->nome, nome);
+  
+  filme->cor = BRANCO;
   filme->nivel = 0;
+  
   filme->similar = NULL;
   return filme;
 }
@@ -224,7 +227,7 @@ Recomendacao *criar_recomendacao(void) {
   if (!recomendacao->filmes) exit(1);
 
   for (int i = 0; i < NUMERO_FILMES; i++)
-    recomendacao->filmes[i] = criar_filme(nomes_filmes[i]);
+    recomendacao->filmes[i] = criar_filme(i, nomes_filmes[i]);
 
   return recomendacao;
 }
@@ -294,8 +297,6 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
   
   // Nó descoberto
   filme->cor = CINZA;
-  
-  filme->identificador = posicao;
   filme->nivel = nivel;
 
   printf("%-10d %-50s Nivel: %-10d Anterior: %-10d\n", posicao, filme->nome, nivel, posicao_anterior);
