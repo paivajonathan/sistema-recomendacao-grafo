@@ -80,9 +80,6 @@ void gerar_similaridades(Recomendacao *recomendacao);
 
 int comparar_por_distancia(const void *a, const void *b);
 
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int distancia, int posicao_anterior);
-void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial);
-
 void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_inicial, int posicao_final, int distancia_atual, int* distancia_minima);
 void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial);
 
@@ -259,6 +256,12 @@ void destruir_recomendacao(Recomendacao *recomendacao) {
   recomendacao = NULL;
 }
 
+/**
+ * Adiciona um ponteiro de estrutura que representa a similaridade entre dois filmes.
+ * Essa similaridade é adicionada na lista encadeada de similaridades, tanto do filme referenciado
+ * pela 'posicao_de', quanto pelo referenciado pela 'posicao_para'. É feita, também, uma verificação
+ * para não adicionar uma mesma similaridade em uma mesma lista duas vezes.
+ */
 void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posicao_para) {
   Similaridade *similaridade = NULL;
   Similaridade *cursor = NULL;
@@ -325,82 +328,21 @@ int comparar_por_distancia(const void *a, const void *b) {
 }
 
 /**
- * Busca recursiva para encontrar os similares de cada filme,
- * enquanto mostra informações de posição, nome, distância pro inicial e posição do filme anterior.
+ * Busca recursiva para encontrar a menor distância entre dois filmes no grafo.
+ * Encontrada a menor distância, o ponteiro para distância mínima é modificado com esse valor.
  */
-void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resultado, int posicao, int distancia, int posicao_anterior) {
-  Filme *filme = recomendacao->filmes[posicao];
-
-  // Filme descoberto
-  filme->cor = CINZA;
-
-  // Nível de distância pro filme inicial
-  filme->distancia = distancia;
-
-  printf("%-10d %-50s Distancia: %-10d Anterior: %-10d\n", posicao, filme->nome, distancia, posicao_anterior);
-  
-  // Insere na lista para o resultado final da recomendação
-  inserir_lista(lista_resultado, filme);
-
-  // Buscar todos os similares do filme atual
-  Similaridade *cursor = filme->similar;
-  while (cursor != NULL) {
-    int posicao_similar = cursor->posicao;
-    Filme *filme_similar = recomendacao->filmes[posicao_similar];
-
-    // Caso o filme ainda não tenha sido visitado
-    if (filme_similar->cor == BRANCO)
-      buscar_similaridades_interno(recomendacao, lista_resultado, posicao_similar, distancia + 1, posicao);
-
-    cursor = cursor->proximo;
-  }
-
-  // Filme finalizado
-  filme->cor = PRETO;
-}
-
-/**
- * Busca filmes similares a partir do sistema de recomendação e da posição do filme inicial,
- * percorrendo por todas as conexões de similaridades entre os filmes, recursivamente, enquanto popula a lista
- * de apresentação do resultado. Essa lista que contém todos os filmes similares ao inicial, será, ao final,
- * ordenada pela distância de cada filme para o filme escolhido.
- */
-void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
-  Lista *lista_resultado = criar_lista();
-  
-  // Filme inicial tem nenhuma distância para ele mesmo
-  int distancia = 0;
-
-  // Reseta os nós para a busca funcionar mais uma vez
-  resetar_recomendacao(recomendacao);
-
-  puts("---------- Buscando todos os similares... ----------\n");
-  printf("Filme inicial: %d\n\n", posicao_inicial);
-  
-  // Início da busca em profundidade
-  buscar_similaridades_interno(recomendacao, lista_resultado, posicao_inicial, distancia, -1);
-  
-  printf("\n");
-
-  // Ordena a lista do resultado pela distância dos filmes para o filme escolhido.
-  // Quanto menor o seu valor, mais próxima é a similaridade.
-  qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
-  exibir_lista(lista_resultado);
-
-  destruir_lista(lista_resultado);
-}
-
 void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_inicial, int posicao_final, int distancia_atual, int* distancia_minima) {
   Filme *filme = recomendacao->filmes[posicao_inicial];
   filme->cor = PRETO;  // Marcar como visitado para não retornar a esse nó dentro desta busca
 
-  // printf("Posicao atual: %-10d Posicao final: %-10d Distancia: %-10d ", posicao_inicial, posicao_final, distancia_atual);
+  // Descomentar para mostrar a execução da busca para cada um dos filmes (>)
+  // > printf("Posicao atual: %-10d Posicao final: %-10d Distancia: %-10d ", posicao_inicial, posicao_final, distancia_atual);
 
   if (posicao_inicial == posicao_final && distancia_atual < *distancia_minima) {
     *distancia_minima = distancia_atual;
-    // printf("Distancia minima: %-10d\n", *distancia_minima);
+    // > printf("Distancia minima: %-10d\n", *distancia_minima);
   } else {
-    // printf("Distancia minima: %-10d\n", *distancia_minima);
+    // > printf("Distancia minima: %-10d\n", *distancia_minima);
     Similaridade *cursor = filme->similar;
 
     while (cursor != NULL) {
@@ -417,6 +359,12 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
   filme->cor = BRANCO;  // Desmarcar o nó para outras possibilidades de caminhos
 }
 
+/**
+ * Dado o sistema de recomendação e a posição do filme inicial, busca todos os seus similares,
+ * guardando a distância do filme para cada um deles. Dessa forma, é construída uma lista
+ * de todos os filmes similares ao escolhido, que é ordenada por meio da distância ao inicial,
+ * para que seja exibida ao usuário.
+ */
 void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_resultado = criar_lista();
   Filme *filme = NULL;
@@ -426,8 +374,8 @@ void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) 
   printf("Filme inicial: %d\n\n", posicao_inicial);
   
   for (int i = 0; i < NUMERO_FILMES; i++) {
-    posicao_final = i;
-    distancia_minima = INT_MAX;
+    posicao_final = i;  // A distância será verificada para cada um dos filmes
+    distancia_minima = INT_MAX;  // Máximo valor que um inteiro pode ter
     
     printf("---------- Filme: %d <-> Filme: %d ----------\n", posicao_inicial, posicao_final);
     
