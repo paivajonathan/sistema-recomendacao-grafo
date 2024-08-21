@@ -227,6 +227,10 @@ void exibir_filmes_similares(Recomendacao *recomendacao) {
   }
 }
 
+/**
+ * Reseta a 'cor' dos filmes do sistema de recomendação,
+ * para que a busca seja realizada mais uma vez.
+ */
 void resetar_recomendacao(Recomendacao *recomendacao) {
   Filme *filme = NULL;
   
@@ -256,7 +260,7 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
   Similaridade *cursor = NULL;
   Filme *filme = NULL;
 
-  // ----------------- IDA ------------------------
+  // ----------------- Ida ------------------------
 
   filme = recomendacao->filmes[posicao_de];
 
@@ -272,7 +276,7 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
   similaridade->proximo = filme->similar;
   filme->similar = similaridade;
 
-  // ----------------- VOLTA ------------------------
+  // ----------------- Volta (grafo não direcional) ------------------------
 
   filme = recomendacao->filmes[posicao_para];
 
@@ -289,11 +293,14 @@ void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posi
   filme->similar = similaridade;
 }
 
+/**
+ * Gera similaridades aleatoriamente entre os filmes.
+ * São realizadas NUMERO_FILMES = 20 tentativas de conexão entre os filmes.
+ * Tentativas, por ser possível os mesmos números serem gerados mais de uma vez.
+ */
 void gerar_similaridades(Recomendacao *recomendacao) {
   int posicao_origem = 0, posicao_destino = 0;
 
-  // São realizadas NUMERO_FILMES = 20 tentativas de conexão entre os filmes.
-  // Tentativas, por ser possível os mesmos números serem gerados mais de uma vez.
   for (int i = 0; i < NUMERO_FILMES; i++) {
     posicao_origem = rand() % NUMERO_FILMES;  // 0 a 19
     posicao_destino = rand() % NUMERO_FILMES;  // 0 a 19
@@ -313,13 +320,17 @@ int comparar_por_distancia(const void *a, const void *b) {
   return 0;
 }
 
+/**
+ * Busca recursiva para encontrar os similares de cada filme,
+ * enquanto mostra informações de posição, nome, distância pro inicial e posição do filme anterior.
+ */
 void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resultado, int posicao, int distancia, int posicao_anterior) {
   Filme *filme = recomendacao->filmes[posicao];
 
-  // Nó descoberto
+  // Filme descoberto
   filme->cor = CINZA;
 
-  // Nível de distância pro nó inicial
+  // Nível de distância pro filme inicial
   filme->distancia = distancia;
 
   printf("%-10d %-50s Distancia: %-10d Anterior: %-10d\n", posicao, filme->nome, distancia, posicao_anterior);
@@ -327,24 +338,33 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista_resul
   // Insere na lista para o resultado final da recomendação
   inserir_lista(lista_resultado, filme);
 
-  // Buscar todos os vizinhos do nó atual
+  // Buscar todos os similares do filme atual
   Similaridade *cursor = filme->similar;
   while (cursor != NULL) {
     int posicao_similar = cursor->posicao;
     Filme *filme_similar = recomendacao->filmes[posicao_similar];
 
+    // Caso o filme ainda não tenha sido visitado
     if (filme_similar->cor == BRANCO)
       buscar_similaridades_interno(recomendacao, lista_resultado, posicao_similar, distancia + 1, posicao);
 
     cursor = cursor->proximo;
   }
 
-  // Nó finalizado
+  // Filme finalizado
   filme->cor = PRETO;
 }
 
+/**
+ * Busca filmes similares a partir do sistema de recomendação e da posição do filme inicial,
+ * percorrendo por todas as conexões de similaridades entre os filmes, recursivamente, enquanto popula a lista
+ * de apresentação do resultado. Essa lista que contém todos os filmes similares ao inicial, será, ao final,
+ * ordenada pela distância de cada filme para o filme escolhido.
+ */
 void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_resultado = criar_lista();
+  
+  // Filme inicial tem nenhuma distância para ele mesmo
   int distancia = 0;
 
   // Reseta os nós para a busca funcionar mais uma vez
@@ -353,6 +373,7 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   puts("---------- Buscando todos os similares... ----------\n");
   printf("Filme inicial: %d\n\n", posicao_inicial);
   
+  // Início da busca em profundidade
   buscar_similaridades_interno(recomendacao, lista_resultado, posicao_inicial, distancia, -1);
   
   printf("\n");
