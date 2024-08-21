@@ -266,13 +266,13 @@ void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int 
 }
 
 int comparar_por_nivel(const void *a, const void *b) {
-  // Cast dos ponteiros para ponteiros para Item
-  const Filme *item_a = *(const Filme **)a;
-  const Filme *item_b = *(const Filme **)b;
+  // Cast dos ponteiros para ponteiros para Filme
+  const Filme *filme_a = *(const Filme **)a;
+  const Filme *filme_b = *(const Filme **)b;
 
-  // Comparar os níveis
-  if (item_a->nivel < item_b->nivel) return -1;
-  if (item_a->nivel > item_b->nivel) return 1;
+  // Compara os níveis
+  if (filme_a->nivel < filme_b->nivel) return -1;
+  if (filme_a->nivel > filme_b->nivel) return 1;
   return 0;
 }
 
