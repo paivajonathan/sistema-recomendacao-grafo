@@ -367,7 +367,7 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   // Ordena a lista de recomendação pelo nível de similaridade com o principal
   // Quanto menor o nível, mais próxima é a similaridade com o filme
   qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_nivel);
-
   exibir_lista(lista_resultado);
+
   destruir_lista(lista_resultado);
 }
