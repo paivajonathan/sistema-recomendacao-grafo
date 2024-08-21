@@ -58,6 +58,57 @@ typedef struct Recomendacao {
   Filme **filmes;
 } Recomendacao;
 
+Similaridade *criar_similaridade(int posicao);
+
+void destruir_similaridades(Similaridade *inicial);
+
+Filme *criar_filme(char nome[]);
+
+void destruir_filme(Filme *filme);
+
+void exibir_similares(Filme *filme);
+
+Lista *criar_lista(void);
+
+void inserir_lista(Lista *lista, Filme *filme);
+
+void exibir_lista(Lista *lista);
+
+void destruir_lista(Lista *lista);
+
+Recomendacao *criar_recomendacao(void);
+
+void destruir_recomendacao(Recomendacao *recomendacao);
+
+void adicionar_similaridade(Recomendacao *recomendacao, int posicao_de, int posicao_para);
+
+void gerar_similaridades(Recomendacao *recomendacao);
+
+void buscar_similaridades_interno(Recomendacao *recomendacao, Lista *lista, int posicao, int nivel, int posicao_anterior);
+
+int comparar_por_nivel(const void *a, const void *b);
+
+void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial);
+
+int main(void) {
+  srand(time(NULL));
+
+  Recomendacao *recomendacao = criar_recomendacao();
+  int posicao_inicial = rand() % NUMERO_FILMES;
+
+  gerar_similaridades(recomendacao);
+
+  puts("\n---------- Exibindo os similares de cada filme... ----------\n");
+  for (int i = 0; i < NUMERO_FILMES; i++) {
+    printf("[%d]: ", i);
+    exibir_similares(recomendacao->filmes[i]);
+  }
+
+  buscar_similaridades(recomendacao, posicao_inicial);
+
+  destruir_recomendacao(recomendacao);
+}
+
 Similaridade *criar_similaridade(int posicao) {
   Similaridade *similaridade = malloc(sizeof(Similaridade));
   if (!similaridade) exit(1);
@@ -99,7 +150,7 @@ void destruir_filme(Filme *filme) {
   filme = NULL;
 }
 
-void printar_similares(Filme *filme) {
+void exibir_similares(Filme *filme) {
   int contador = 0;
 
   printf("%s\n", filme->nome);
@@ -299,23 +350,4 @@ void buscar_similaridades(Recomendacao *recomendacao, int posicao_inicial) {
   
   exibir_lista(lista_filmes);
   destruir_lista(lista_filmes);
-}
-
-int main(void) {
-  srand(time(NULL));
-
-  Recomendacao *recomendacao = criar_recomendacao();
-  int posicao_inicial = rand() % NUMERO_FILMES;
-
-  gerar_similaridades(recomendacao);
-
-  puts("\n---------- Exibindo os similares de cada filme... ----------\n");
-  for (int i = 0; i < NUMERO_FILMES; i++) {
-    printf("[%d]: ", i);
-    printar_similares(recomendacao->filmes[i]);
-  }
-
-  buscar_similaridades(recomendacao, posicao_inicial);
-
-  destruir_recomendacao(recomendacao);
 }
