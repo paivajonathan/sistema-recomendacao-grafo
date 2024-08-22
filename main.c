@@ -86,10 +86,19 @@ int main(void) {
   srand(time(NULL));
 
   Recomendacao *recomendacao = criar_recomendacao();
-  int posicao_inicial = rand() % NUMERO_FILMES;
+  int posicao_inicial = 0;
 
   gerar_similaridades(recomendacao);
   exibir_filmes_similares(recomendacao);
+
+  int validado = 0;
+  while (!validado) {
+    printf("Digite o numero do filme:\n");
+    scanf("%d", &posicao_inicial);
+    
+    if (posicao_inicial >= 0 && posicao_inicial < NUMERO_FILMES)
+      validado = 1;
+  }
 
   buscar_menores_distancias(recomendacao, posicao_inicial);
 
