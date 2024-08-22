@@ -100,7 +100,7 @@ int main(void) {
  * Cria um ponteiro para similaridade.
  */
 Similaridade *criar_similaridade(int posicao) {
-  Similaridade *similaridade = malloc(sizeof(Similaridade));
+  Similaridade *similaridade = (Similaridade *) malloc(sizeof(Similaridade));
   if (!similaridade) exit(1);
   similaridade->posicao = posicao;
   similaridade->proximo = NULL;
@@ -127,7 +127,7 @@ void destruir_similaridades(Similaridade *inicial) {
  * para efeitos de exibição ao usuário.
  */
 Filme *criar_filme(int identificador, char nome[]) {
-  Filme *filme = malloc(sizeof(Filme));
+  Filme *filme = (Filme *) malloc(sizeof(Filme));
   if (!filme) exit(1);
 
   filme->identificador = identificador;
@@ -182,7 +182,7 @@ void destruir_filme(Filme *filme) {
  * Aloca a memória necessária para um ponteiro para lista de filmes.
  */
 Lista *criar_lista(void) {
-  Lista *lista = malloc(sizeof(Lista));
+  Lista *lista = (Lista *) malloc(sizeof(Lista));
   if (!lista) exit(1);
   lista->tamanho = 0;
   lista->filmes = NULL;
@@ -196,9 +196,11 @@ Lista *criar_lista(void) {
  */
 void inserir_lista(Lista *lista, Filme *filme) {
   if (!lista->tamanho)
-    lista->filmes = malloc(sizeof(Filme *));
+    lista->filmes = (Filme **) malloc(sizeof(Filme *));
   else
-    lista->filmes = realloc(lista->filmes, sizeof(Filme *) * (lista->tamanho + 1));
+    lista->filmes = (Filme **) realloc(lista->filmes, sizeof(Filme *) * (lista->tamanho + 1));
+
+  if (lista->filmes == NULL) exit(1);
 
   lista->filmes[lista->tamanho++] = filme;
 }
@@ -222,7 +224,7 @@ void exibir_lista(Lista *lista) {
 
   for (int i = 1; i < lista->tamanho; i++) {
     filme = lista->filmes[i];
-    printf("[%d] - %s - %d\n", filme->identificador, filme->nome, filme->distancia);
+    printf("Posicao: %-10d %-50s Nivel: %-10d\n", filme->identificador, filme->nome, filme->distancia);
   }
 }
 
@@ -243,10 +245,10 @@ void destruir_lista(Lista *lista) {
  * Cria um ponteiro para uma estrutura de recomendação.
  */
 Recomendacao *criar_recomendacao(void) {
-  Recomendacao *recomendacao = malloc(sizeof(Recomendacao));
+  Recomendacao *recomendacao = (Recomendacao *) malloc(sizeof(Recomendacao));
   if (!recomendacao) exit(1);
 
-  recomendacao->filmes = malloc(sizeof(Filme *) * NUMERO_FILMES);
+  recomendacao->filmes = (Filme **) malloc(sizeof(Filme *) * NUMERO_FILMES);
   if (!recomendacao->filmes) exit(1);
 
   for (int i = 0; i < NUMERO_FILMES; i++)
@@ -366,7 +368,7 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
   Filme *filme = recomendacao->filmes[posicao_inicial];
 
   // Marcar como visitado para não retornar a esse nó dentro desta busca
-  filme->cor = PRETO;  
+  filme->cor = PRETO;
 
   // Descomentar para mostrar a execução da busca para cada um dos filmes (>)
   // > printf("Posicao atual: %-10d Posicao final: %-10d Distancia: %-10d ", posicao_inicial, posicao_final, distancia_atual);
@@ -392,7 +394,7 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
   }
 
   // Desmarcar o nó para outras possibilidades de caminhos
-  filme->cor = BRANCO;  
+  filme->cor = BRANCO;
 }
 
 /**
@@ -404,17 +406,17 @@ void buscar_menores_distancias_interno(Recomendacao *recomendacao, int posicao_i
 void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) {
   Lista *lista_resultado = criar_lista();
   Filme *filme = NULL;
-  
+
   int posicao_final = 0, distancia_minima = 0;
-  
+
   printf("Filme inicial: %d\n\n", posicao_inicial);
-  
+
   for (int i = 0; i < NUMERO_FILMES; i++) {
     posicao_final = i;  // A distância será verificada para cada um dos filmes
     distancia_minima = INT_MAX;  // Máximo valor que um inteiro pode ter
-    
+
     printf("---------- Filme: %d <-> Filme: %d ----------\n", posicao_inicial, posicao_final);
-    
+
     filme = recomendacao->filmes[i];
     buscar_menores_distancias_interno(recomendacao, posicao_inicial, posicao_final, 0, &distancia_minima);
     filme->distancia = distancia_minima;
@@ -423,15 +425,15 @@ void buscar_menores_distancias(Recomendacao *recomendacao, int posicao_inicial) 
       printf("---------- Distancia minima: %d ----------\n\n", distancia_minima);
       inserir_lista(lista_resultado, filme);
       continue;
-    } 
-    
+    }
+
     printf("---------- Nao ha similaridade ----------\n\n");
   }
 
   // Ordena a lista que será exibida ao usuário pela distância que cada filme tem
   // para o filme que foi escolhido.
   qsort(lista_resultado->filmes, lista_resultado->tamanho, sizeof(Filme *), comparar_por_distancia);
-  
+
   exibir_lista(lista_resultado);
   printf("\n");
 
